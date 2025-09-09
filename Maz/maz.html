@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>My Maz</title>
+</head>
+<body>
+    <div class="main_body">
+        <h1 id="first_h">Maz Solver</h1>
+        <div id="instruction_box">
+            <h3>Instructions</h3>
+            <p>1- Enter the size of the maze (N*N) and click generate Maze button <br>
+               2- Click "Solve Maze" to find a path if one exists.
+               3- Click "reset Maze" for reset Maze.</p>
+        </div>
+        <div id="second_part">
+            <div id="maz_setting">
+                <h2 id="size">Enter Size:</h2>
+                <input type="number" id="sizeInput" min="2" placeholder="Enter size (N)">
+                <div id="message"></div>
+                <button onclick="generateMaze()">Generate Maze</button>
+                <button onclick="solveMaze()">Solve Maze</button>
+                <button onclick="resetMaze()">Reset Maze</button>
+            </div>
+            <div id="maze-container">
+                <div id="maze"></div>
+            </div>
+        </div>
+       
+        
+    </div>
+    <footer class="footer">
+        <small class="copyright">
+          &copy;Copyright by Mobina ISoufi _ All rights reserved
+        </small>
+        <small class="data">
+         _ last checked limites: last seen recently
+        </small>
+      </footer>
+
+      <style>
+        body {
+            background: linear-gradient(135deg, #1a1a40, #0f4c75, #3282b8);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .main_body {
+            background-color: rgba(255, 255, 255, 0.92);
+            border-radius: 30px;
+            min-height: 750px;
+            max-width: 1100px;
+            margin: 5% auto;
+            padding: 30px;
+            box-shadow: 0 10px 35px rgba(0,0,0,0.25);
+            animation: fadeIn 0.8s ease-in-out;
+        }
+        #first_h {
+            font-size: 55px;
+            font-weight: bold;
+            text-align: center;
+            color: #0f4c75;
+            margin-bottom: 20px;
+        }
+        #instruction_box {
+            background-color: #eaf6f6;
+            border-radius: 20px;
+            padding: 20px;
+            width: 92%;
+            min-height: 150px;
+            font-size: 18px;
+            line-height: 1.6;
+            margin: 0 auto 25px auto;
+            box-shadow: inset 0 2px 6px rgba(0,0,0,0.1);
+        }
+        #second_part {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+            padding: 20px;
+        }
+        #maz_setting {
+            background-color: #f1faff;
+            border-radius: 20px;
+            padding: 25px;
+            width: 38%;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        input {
+            width: 100%;
+            margin-top: 8px;
+            padding: 10px;
+            border: 1px solid #90e0ef;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+        button {
+            width: 100%;
+            margin-top: 12px;
+            background: linear-gradient(135deg, #0f4c75, #3282b8);
+            color: #fff;
+            font-size: 16px;
+            font-weight: bold;
+            border: none;
+            padding: 12px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: 0.3s ease;
+        }
+        button:hover {
+            background: linear-gradient(135deg, #3282b8, #0f4c75);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+        #maze-container {
+            background: #0f4c75;
+            color: #fff;
+            border-radius: 25px;
+            width: 55%;
+            padding: 25px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+        }
+        #maze {
+            display: grid;
+            gap: 2px;
+            background-color: #ccc;
+            padding: 2px;
+            border: 2px solid #ccc;
+        }
+        .cell {
+            width: 28px;
+            height: 28px;
+            background-color: #f1f1f1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0;
+            padding: 0;
+            border-radius: 4px;
+        }
+        .path {
+            background: #80ed99;
+        }
+        .wall {
+            background: #222831;
+        }
+        .entrance {
+            background: #48cae4; 
+            color: #fff;
+        }
+        .exit {
+            background: #ef476f; 
+            color: #fff;
+        }
+        #message {
+            margin-top: 12px;
+            font-weight: bold;
+            color: #0f4c75;
+            font-size: 15px;
+        }
+        .footer {
+            max-width: 1100px;
+            margin: 40px auto 0 auto;
+            text-align: center;
+            color: #eeeeee;
+            opacity: 0.7;
+            font-size: 14px;
+           
+
+        }
+       
+    </style>
+    
+
+    <script>
+        let currentMaze = null;
+        function generateMaze() {
+            const size = parseInt(document.getElementById('sizeInput').value);
+            const messageAnswer = document.getElementById('message');
+
+            if (size < 2) {
+                messageAnswer.textContent = 'Enter a valid size! (size > 1)';
+                return;
+            }
+
+            currentMaze = createRandomMaze(size);
+            displayMaze(currentMaze, null, size);
+            messageAnswer.textContent = 'Maze generated! Click "Solve Maze" to find a path.';
+        }
+
+        function createRandomMaze(size) {
+            const maze = [];
+            for (let i = 0; i < size; i++) {
+                maze[i] = [];
+                for (let j = 0; j < size; j++) {
+                    maze[i][j] = Math.random() < 0.7 ? 1 : 0; 
+                }
+            }
+            maze[0][0] = 1; 
+            maze[size - 1][size - 1] = 1; 
+            return maze;
+        }
+ 
+        function findPath(maze, size) {
+            const directions = [[-1, 0], [0, 1], [1, 0], [0, -1]];
+            const visited = Array.from({ length: size }, () => Array(size).fill(false));
+            const parent = Array.from({ length: size }, () => Array(size).fill(null));
+            const queue = [[0, 0]];
+
+            visited[0][0] = true;
+
+            while (queue.length) {
+                const [x, y] = queue.shift();
+
+                if (x === size - 1 && y === size - 1) {
+                    const path = [];
+                    let curr = [x, y];
+                    while (curr) {
+                        path.push(curr);
+                        curr = parent[curr[0]][curr[1]];
+                    }
+                    return path.reverse();
+                }
+
+                for (const [dx, dy] of directions) {
+                    const newX = x + dx;
+                    const newY = y + dy;
+                    if (newX >= 0 && newX < size && newY >= 0 && newY < size &&
+                        !visited[newX][newY] && maze[newX][newY] === 1) {
+                        visited[newX][newY] = true;
+                        parent[newX][newY] = [x, y];
+                        queue.push([newX, newY]);
+                    }
+                }
+            }
+            return null;
+        }
+
+        function displayMaze(maze, path, size) {
+            const mazeDiv = document.getElementById('maze');
+            mazeDiv.innerHTML = '';
+            mazeDiv.style.gridTemplateColumns = `repeat(${size}, 30px)`;
+            mazeDiv.style.gridTemplateRows = `repeat(${size}, 30px)`;
+
+            for (let i = 0; i < size; i++) {
+                for (let j = 0; j < size; j++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+
+                    if (i === 0 && j === 0) {
+                        cell.classList.add('entrance');
+                        cell.textContent = 'E';
+                    } else if (i === size - 1 && j === size - 1) {
+                        cell.classList.add('exit');
+                        cell.textContent = 'X';
+                    } else if (maze[i][j] === 0) {
+                        cell.classList.add('wall');
+                    } else if (path && path.some(p => p[0] === i && p[1] === j)) {
+                        cell.classList.add('path');
+                    }
+
+                    mazeDiv.appendChild(cell);
+                }
+            }
+        }
+
+        function resetMaze() {
+            document.getElementById('maze').innerHTML = '';
+            document.getElementById('message').textContent = '';
+            document.getElementById('sizeInput').value = '';
+            currentMaze = null;
+        }
+
+        function solveMaze() {
+            const size = parseInt(document.getElementById('sizeInput').value);
+            const messageAnswer = document.getElementById('message');
+            
+            if (!currentMaze) {
+                messageAnswer.textContent = 'Please generate a maze first!';
+                return;
+            }
+
+            const path = findPath(currentMaze, size);
+
+            if (path) {
+                messageAnswer.textContent = 'The exit has been found!!! 🎉';
+            } else {
+                messageAnswer.textContent = 'The exit has not been found!!!';
+            }
+
+            displayMaze(currentMaze, path, size);
+        }
+    </script>
+</body>
+</html>
